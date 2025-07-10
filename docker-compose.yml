@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: mathadapt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mathadapt
+      POSTGRES_USER: mathadapt
+      POSTGRES_PASSWORD: dev_password_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./packages/backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mathadapt-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: mathadapt-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - mathadapt-network
+
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile
+    container_name: mathadapt-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://mathadapt:dev_password_2024@postgres:5432/mathadapt
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev_jwt_secret_key_2024
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy_key}
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./packages/backend:/app
+      - /app/node_modules
+    networks:
+      - mathadapt-network
+
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile
+    container_name: mathadapt-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      REACT_APP_API_URL: http://localhost:3001/graphql
+      REACT_APP_WS_URL: ws://localhost:3001/graphql
+    depends_on:
+      - backend
+    volumes:
+      - ./packages/frontend:/app
+      - /app/node_modules
+    networks:
+      - mathadapt-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  mathadapt-network:
+    driver: bridge

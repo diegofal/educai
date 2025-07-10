@@ -1,0 +1,30 @@
+{
+  "name": "mathadapt-mvp",
+  "version": "1.0.0",
+  "description": "Plataforma de matemática adaptativa para niños de 3-12 años con IA y benchmarks internacionales",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd packages/backend && npm run start:dev",
+    "dev:frontend": "cd packages/frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd packages/backend && npm run build",
+    "build:frontend": "cd packages/frontend && npm run build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "db:migrate": "cd packages/backend && npm run migration:run",
+    "db:seed": "cd packages/backend && npm run seed",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd packages/backend && npm run test",
+    "test:frontend": "cd packages/frontend && npm run test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": ["mathematics", "adaptive-learning", "ai", "education", "children"],
+  "author": "MathAdapt Team",
+  "license": "MIT"
+}
